@@ -19,8 +19,6 @@ jobs:
         with:
           flutter-version: 3.24.0
           channel: stable
-      - name: Change directory
-        run: cd habittracker/everbloom
       - name: Get dependencies
         working-directory: habittracker/everbloom
         run: flutter pub get
