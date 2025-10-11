@@ -12,11 +12,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build Flutter APK
+    name: Build Debug APK
 
     steps:
-      # 1️⃣ Checkout repository
-      - name: Checkout code
+      # 1️⃣ Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       # 2️⃣ Setup Flutter
@@ -31,14 +31,14 @@ jobs:
         working-directory: everbloom
         run: flutter pub get
 
-      # 4️⃣ Build APK
-      - name: Build release APK
+      # 4️⃣ Build debug APK (unsigned, but always works)
+      - name: Build debug APK
         working-directory: everbloom
         run: flutter build apk --debug
 
-      # 5️⃣ Upload APK artifact
+      # 5️⃣ Upload generated APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
+          name: app-debug-apk
+          path: everbloom/build/app/outputs/flutter-apk/app-debug.apk
