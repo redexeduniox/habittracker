@@ -1,0 +1,50 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  build:
+    name: Build Flutter Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0' # or whichever version you use
+          channel: 'stable'
+
+      # 3️⃣ Move into your Flutter project folder
+      - name: Change directory
+        run: cd habittracker/everbloom
+
+      # (Note: The working-directory must be specified for each step, see below)
+
+      # 4️⃣ Get Flutter dependencies
+      - name: Get dependencies
+        working-directory: habittracker/everbloom
+        run: flutter pub get
+
+      # 5️⃣ Build APK
+      - name: Build release APK
+        working-directory: habittracker/everbloom
+        run: flutter build apk --release
+
+      # 6️⃣ Upload APK as workflow artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
