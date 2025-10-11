@@ -34,7 +34,7 @@ jobs:
       # 4️⃣ Build APK
       - name: Build release APK
         working-directory: everbloom
-        run: flutter build apk --release
+        run: flutter build apk --debug
 
       # 5️⃣ Upload APK artifact
       - name: Upload APK
