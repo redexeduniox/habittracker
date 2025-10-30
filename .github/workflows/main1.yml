@@ -20,7 +20,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'  # Includes Dart 3.6.x
+          flutter-version: '3.27.4'
           channel: 'stable'
 
       # 3️⃣ Decode keystore file from GitHub Secret
@@ -49,7 +49,7 @@ jobs:
         working-directory: habittracker/everbloom
         run: flutter build apk --release
 
-      # 7️⃣ Upload APK as an artifact
+      # 7️⃣ Upload signed APK
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
