@@ -20,16 +20,24 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'
+          flutter-version: '3.27.4'  # Includes Dart 3.6.x
           channel: 'stable'
 
-      # 3️⃣ Decode keystore file from GitHub Secret
+      # 3️⃣ Debug: Check folder structure
+      - name: Check directory structure
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "List root contents:"
+          ls -R
+
+      # 4️⃣ Decode keystore file from GitHub Secret
       - name: Decode keystore
         run: |
           mkdir -p habittracker/everbloom/android/app
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > habittracker/everbloom/android/app/release-keystore.jks
 
-      # 4️⃣ Create key.properties file for Gradle
+      # 5️⃣ Create key.properties file for Gradle signing
       - name: Create key.properties
         run: |
           cat <<EOF > habittracker/everbloom/android/key.properties
@@ -39,17 +47,22 @@ jobs:
           storeFile=release-keystore.jks
           EOF
 
-      # 5️⃣ Get Flutter dependencies
+      # 6️⃣ Get Flutter dependencies
       - name: Get Flutter dependencies
         working-directory: habittracker/everbloom
-        run: flutter pub get
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files in directory:"
+          ls -la
+          flutter pub get
 
-      # 6️⃣ Build signed release APK
+      # 7️⃣ Build signed release APK
       - name: Build release APK
         working-directory: habittracker/everbloom
         run: flutter build apk --release
 
-      # 7️⃣ Upload signed APK
+      # 8️⃣ Upload signed APK artifact
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
