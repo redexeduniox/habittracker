@@ -15,48 +15,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Verify structure
+      # 2️⃣ Show directory structure (for debugging)
       - name: Show directory structure
         run: |
           echo "Current directory:"
           pwd
-          echo "Listing files:"
+          echo "Listing files recursively:"
           ls -R
 
       # 3️⃣ Set up Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.4" # matches SDK constraint in pubspec.yaml
+          flutter-version: "3.27.4" # compatible with your Dart SDK requirement
 
-      # 4️⃣ Decode keystore from secret
+      # 4️⃣ Decode Keystore
       - name: Decode Keystore
-        working-directory: habittracker/everbloom/android/app
+        working-directory: everbloom/android/app
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
 
       # 5️⃣ Create key.properties
       - name: Create key.properties
-        working-directory: habittracker/everbloom/android
+        working-directory: everbloom/android
         run: |
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
           echo "storeFile=app/release-keystore.jks" >> key.properties
 
-      # 6️⃣ Get dependencies
+      # 6️⃣ Install dependencies
       - name: Flutter pub get
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter pub get
 
-      # 7️⃣ Build signed release APK
+      # 7️⃣ Build the signed release APK
       - name: Build release APK
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter build apk --release
 
-      # 8️⃣ Upload artifact
+      # 8️⃣ Upload the release APK
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
+          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
