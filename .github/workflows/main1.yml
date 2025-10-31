@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Show directory structure (for debugging)
+      # 2️⃣ Verify structure
       - name: Show directory structure
         run: |
           echo "Current directory:"
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.4" # compatible with your Dart SDK requirement
+          flutter-version: "3.27.4"
 
       # 4️⃣ Decode Keystore
       - name: Decode Keystore
@@ -42,19 +42,19 @@ jobs:
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
-          echo "storeFile=app/release-keystore.jks" >> key.properties
+          echo "storeFile=release-keystore.jks" >> key.properties
 
       # 6️⃣ Install dependencies
       - name: Flutter pub get
         working-directory: everbloom
         run: flutter pub get
 
-      # 7️⃣ Build the signed release APK
+      # 7️⃣ Build signed release APK
       - name: Build release APK
         working-directory: everbloom
         run: flutter build apk --release
 
-      # 8️⃣ Upload the release APK
+      # 8️⃣ Upload artifact
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
