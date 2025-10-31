@@ -16,27 +16,27 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4' # Use your Flutter version
+          flutter-version: '3.27.4'
           channel: 'stable'
 
-      - name: Verify directory structure
+      - name: Show folder structure
         run: |
           echo "Current path: $(pwd)"
-          echo "Listing habittracker/"
-          ls -la habittracker
-          echo "Listing everbloom/"
-          ls -la habittracker/everbloom
+          echo "Files in root:"
+          ls -la
+          echo "Files in everbloom:"
+          ls -la everbloom
 
-      # 🔑 Decode and create keystore in correct folder
+      # 🔑 Decode and create keystore
       - name: Decode Keystore
         run: |
-          cd habittracker/everbloom/android/app
+          cd everbloom/android/app
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
           ls -la
 
       - name: Configure signing properties
         run: |
-          cd habittracker/everbloom/android
+          cd everbloom/android
           cat > key.properties <<EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
@@ -46,12 +46,15 @@ jobs:
           cat key.properties
 
       - name: Get Flutter dependencies
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter pub get
 
       - name: Build Signed Release APK
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter build apk --release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
