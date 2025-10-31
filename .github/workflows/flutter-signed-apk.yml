@@ -19,41 +19,34 @@ jobs:
           flutter-version: '3.27.4'
           channel: 'stable'
 
-      - name: Show folder structure
-        run: |
-          echo "Current path: $(pwd)"
-          echo "Files in root:"
-          ls -la
-          echo "Files in everbloom:"
-          ls -la everbloom
-
-      # 🔑 Decode and create keystore
       - name: Decode Keystore
         run: |
-          cd everbloom/android/app
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
-          ls -la
+          mkdir -p everbloom/android/app
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > everbloom/android/app/release-keystore.jks
+          ls -la everbloom/android/app
 
-      - name: Configure signing properties
+      - name: Configure key.properties
         run: |
-          cd everbloom/android
-          cat > key.properties <<EOF
+          cat > everbloom/android/key.properties <<EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=release-keystore.jks
           EOF
-          cat key.properties
 
-      - name: Get Flutter dependencies
+      - name: Get dependencies
         working-directory: everbloom
         run: flutter pub get
 
+      - name: Clean Flutter build
+        working-directory: everbloom
+        run: flutter clean
+
       - name: Build Signed Release APK
         working-directory: everbloom
-        run: flutter build apk --release
+        run: flutter build apk --release --no-shrink
 
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
