@@ -3,60 +3,58 @@ name: Build Signed Flutter APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Verify structure
-      - name: Show directory structure
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Listing files recursively:"
-          ls -R
-
-      # 3️⃣ Set up Flutter
-      - name: Set up Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.4"
+          flutter-version: '3.27.4' # Use your Flutter version
+          channel: 'stable'
 
-      # 4️⃣ Decode Keystore
+      - name: Verify directory structure
+        run: |
+          echo "Current path: $(pwd)"
+          echo "Listing habittracker/"
+          ls -la habittracker
+          echo "Listing everbloom/"
+          ls -la habittracker/everbloom
+
+      # 🔑 Decode and create keystore in correct folder
       - name: Decode Keystore
-        working-directory: everbloom/android/app
         run: |
+          cd habittracker/everbloom/android/app
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
+          ls -la
 
-      # 5️⃣ Create key.properties
-      - name: Create key.properties
-        working-directory: everbloom/android
+      - name: Configure signing properties
         run: |
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
-          echo "storeFile=release-keystore.jks" >> key.properties
+          cd habittracker/everbloom/android
+          cat > key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=release-keystore.jks
+          EOF
+          cat key.properties
 
-      # 6️⃣ Install dependencies
-      - name: Flutter pub get
-        working-directory: everbloom
+      - name: Get Flutter dependencies
+        working-directory: habittracker/everbloom
         run: flutter pub get
 
-      # 7️⃣ Build signed release APK
-      - name: Build release APK
-        working-directory: everbloom
+      - name: Build Signed Release APK
+        working-directory: habittracker/everbloom
         run: flutter build apk --release
 
-      # 8️⃣ Upload artifact
-      - name: Upload release APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
+          name: app-release
+          path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
