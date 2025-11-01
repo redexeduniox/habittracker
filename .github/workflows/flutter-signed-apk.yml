@@ -1,78 +1,40 @@
-name: Build Signed Flutter APK
+name: Build and Release Flutter APK
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'  # Match your SDK constraint
-          channel: stable
+          flutter-version: '3.27.4'
 
-      # Cache Gradle & Flutter packages
-      - name: Cache Gradle and Flutter packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.pub-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/pubspec.lock') }}
-
-      # Decode keystore from secret
-      - name: Decode Keystore
-        run: |
-          mkdir -p everbloom/android/app
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > everbloom/android/app/release-keystore.jks
-          ls -la everbloom/android/app
-
-      # Create key.properties file
-      - name: Create key.properties
-        run: |
-          cat <<EOF > everbloom/android/key.properties
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=release-keystore.jks
-          EOF
-          cat everbloom/android/key.properties
-
-      # Get Flutter dependencies
-      - name: Flutter pub get
-        working-directory: everbloom
+      - name: Get dependencies
+        working-directory: habittracker/everbloom
         run: flutter pub get
 
-      # Clean project
-      - name: Flutter clean
-        working-directory: everbloom
-        run: flutter clean
+      - name: Decode keystore
+        working-directory: habittracker/everbloom/android/app
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
 
-      # Build signed release APK with retry
-      - name: Build Signed Release APK (with retry)
-        working-directory: everbloom
-        run: |
-          set -e
-          flutter build apk --release --no-shrink --verbose || (
-            echo "Build failed, retrying in 20s..." && sleep 20 &&
-            flutter build apk --release --no-shrink --verbose
-          )
+      - name: Build release APK
+        working-directory: habittracker/everbloom
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: flutter build apk --release --no-tree-shake-icons
 
-      # Upload APK artifact
-      - name: Upload Release APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: everbloom-release-apk
-          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
+          name: release-apk
+          path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
