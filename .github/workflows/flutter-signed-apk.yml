@@ -1,40 +1,52 @@
-name: Build and Release Flutter APK
+name: Build Signed Flutter APK
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 🧱 Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      # 🧰 Step 2: Set up Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'
+          flutter-version: "3.27.4"
 
-      - name: Get dependencies
-        working-directory: habittracker/everbloom
-        run: flutter pub get
-
-      - name: Decode keystore
+      # 🔑 Step 3: Decode and save keystore file
+      - name: Decode Keystore
         working-directory: habittracker/everbloom/android/app
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
 
-      - name: Build release APK
-        working-directory: habittracker/everbloom
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: flutter build apk --release --no-tree-shake-icons
+      # 🧾 Step 4: Create key.properties file
+      - name: Create key.properties
+        working-directory: habittracker/everbloom/android
+        run: |
+          echo "storeFile=release-keystore.jks" > key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
 
+      # 📦 Step 5: Get Flutter dependencies
+      - name: Get Flutter dependencies
+        working-directory: habittracker/everbloom
+        run: flutter pub get
+
+      # 🏗️ Step 6: Build Signed Release APK
+      - name: Build Signed Release APK
+        working-directory: habittracker/everbloom
+        run: flutter build apk --release --no-shrink
+
+      # 📤 Step 7: Upload the built APK as an artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: app-release-apk
           path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
