@@ -10,43 +10,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 🧱 Step 1: Checkout repository
+      # 🧱 Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 🧰 Step 2: Set up Flutter
+      # 🧰 Set up Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.4"
 
-      # 🔑 Step 3: Decode and save keystore file
+      # 🔑 Decode keystore
       - name: Decode Keystore
-        working-directory: habittracker/everbloom/android/app
+        working-directory: everbloom/android/app
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
 
-      # 🧾 Step 4: Create key.properties file
+      # 🧾 Create key.properties
       - name: Create key.properties
-        working-directory: habittracker/everbloom/android
+        working-directory: everbloom/android
         run: |
           echo "storeFile=release-keystore.jks" > key.properties
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
 
-      # 📦 Step 5: Get Flutter dependencies
+      # 📦 Get Flutter dependencies
       - name: Get Flutter dependencies
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter pub get
 
-      # 🏗️ Step 6: Build Signed Release APK
+      # 🏗️ Build signed APK
       - name: Build Signed Release APK
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter build apk --release --no-shrink
 
-      # 📤 Step 7: Upload the built APK as an artifact
+      # 📤 Upload artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
+          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
