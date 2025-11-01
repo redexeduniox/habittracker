@@ -20,30 +20,30 @@ jobs:
         with:
           flutter-version: '3.27.4'
 
-      # 3️⃣ Decode keystore from GitHub secret
+      # 3️⃣ Decode keystore
       - name: Decode keystore
-        working-directory: habittracker/everbloom/android/app
+        working-directory: everbloom/android/app
         run: echo "$KEYSTORE_BASE64" | base64 --decode > release-keystore.jks
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      # 4️⃣ Get Flutter dependencies
+      # 4️⃣ Get dependencies
       - name: Get Flutter dependencies
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         run: flutter pub get
 
       # 5️⃣ Build signed APK
       - name: Build Signed Release APK
-        working-directory: habittracker/everbloom
+        working-directory: everbloom
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: flutter build apk --release --no-shrink
 
-      # 6️⃣ Upload APK artifact
+      # 6️⃣ Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
+          path: everbloom/build/app/outputs/flutter-apk/app-release.apk
