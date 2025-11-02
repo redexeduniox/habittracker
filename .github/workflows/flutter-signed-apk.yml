@@ -1,10 +1,10 @@
-name: Build Flutter Signed APK
+name: Build Flutter Release APK
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  pull_request:
 
 jobs:
   build:
@@ -14,33 +14,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.27.4'
 
-      - name: Get dependencies
-        run: flutter pub get
-        working-directory: habittracker/everbloom
-
-      - name: Decode Keystore
+      # Decode keystore file from GitHub secret
+      - name: Decode keystore
         working-directory: habittracker/everbloom/android/app
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > release-keystore.jks
-          ls -la
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > release-keystore.jks
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      - name: Build Signed Release APK
-        run: flutter build apk --release --no-shrink
+      # Install dependencies
+      - name: Get dependencies
         working-directory: habittracker/everbloom
+        run: flutter pub get
+
+      # Build release APK
+      - name: Build release APK
+        working-directory: habittracker/everbloom
+        run: flutter build apk --release --no-shrink
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload release APK
+      # Upload built APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.apk
+          name: app-release
           path: habittracker/everbloom/build/app/outputs/flutter-apk/app-release.apk
